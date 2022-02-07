@@ -1,6 +1,6 @@
 {
-  "short_name": "NCC",
-  "name": "Coder Clone NFT",
+  "short_name": "GIA",
+  "name": "Gnome It All NFT",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,12 +8,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "shark192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "shark512.png",
       "type": "image/png",
       "sizes": "512x512"
     }

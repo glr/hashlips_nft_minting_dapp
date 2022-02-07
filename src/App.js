@@ -18,21 +18,13 @@ export const StyledButton = styled.button`
   color: var(--secondary-text);
   width: 100px;
   cursor: pointer;
-  box-shadow: 0px 6px 0px -2px rgba(250, 250, 250, 0.3);
-  -webkit-box-shadow: 0px 6px 0px -2px rgba(250, 250, 250, 0.3);
-  -moz-box-shadow: 0px 6px 0px -2px rgba(250, 250, 250, 0.3);
-  :active {
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-  }
 `;
 
 export const StyledRoundButton = styled.button`
   padding: 10px;
   border-radius: 100%;
   border: none;
-  background-color: var(--primary);
+  background-color: var(--primary-accent);
   padding: 10px;
   font-weight: bold;
   font-size: 15px;
@@ -43,14 +35,6 @@ export const StyledRoundButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 4px 0px -2px rgba(250, 250, 250, 0.3);
-  -webkit-box-shadow: 0px 4px 0px -2px rgba(250, 250, 250, 0.3);
-  -moz-box-shadow: 0px 4px 0px -2px rgba(250, 250, 250, 0.3);
-  :active {
-    box-shadow: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-  }
 `;
 
 export const ResponsiveWrapper = styled.div`
@@ -76,7 +60,7 @@ export const StyledLogo = styled.img`
 
 export const StyledImg = styled.img`
   box-shadow: 0px 5px 11px 2px rgba(0, 0, 0, 0.7);
-  border: 4px dashed var(--secondary);
+  border: 4px solid var(--secondary);
   background-color: var(--accent);
   border-radius: 100%;
   width: 200px;
@@ -94,7 +78,15 @@ export const StyledLink = styled.a`
   text-decoration: none;
 `;
 
+export const StyledTitle = styled.div`
+  color: var(--primary-text);
+  font-size: 120px;
+  font-weight: 800;
+  -webkit-text-stroke: 1px var(--secondary);
+`;
+
 function App() {
+  const exchangeApiUrl = 'https://api.binance.us/api/v3/ticker/price?symbol=MATICUSD'
   const dispatch = useDispatch();
   const blockchain = useSelector((state) => state.blockchain);
   const data = useSelector((state) => state.data);
@@ -119,6 +111,8 @@ function App() {
     MARKETPLACE_LINK: "",
     SHOW_BACKGROUND: false,
   });
+
+  const [usdExchangeRate, setUsdExchangeRate] = useState();
 
   const claimNFTs = () => {
     let cost = CONFIG.WEI_COST;
@@ -152,6 +146,10 @@ function App() {
       });
   };
 
+  const getExchangeRateInfo = () => {
+    fetch(exchangeApiUrl).then(response => response.json()).then(data => setUsdExchangeRate(data.price));
+  };
+
   const decrementMintAmount = () => {
     let newMintAmount = mintAmount - 1;
     if (newMintAmount < 1) {
@@ -162,8 +160,8 @@ function App() {
 
   const incrementMintAmount = () => {
     let newMintAmount = mintAmount + 1;
-    if (newMintAmount > 10) {
-      newMintAmount = 10;
+    if (newMintAmount > CONFIG.MAX_MINT_AMOUNT_PER_TX) {
+      newMintAmount = CONFIG.MAX_MINT_AMOUNT_PER_TX;
     }
     setMintAmount(newMintAmount);
   };
@@ -193,19 +191,24 @@ function App() {
     getData();
   }, [blockchain.account]);
 
+  useEffect(() => {
+    getExchangeRateInfo();
+  }); 
+
   return (
     <s.Screen>
       <s.Container
         flex={1}
         ai={"center"}
         style={{ padding: 24, backgroundColor: "var(--primary)" }}
-        image={CONFIG.SHOW_BACKGROUND ? "/config/images/bg.png" : null}
+        image={CONFIG.SHOW_BACKGROUND ? "/config/images/preview.png" : null}
       >
-        <StyledLogo alt={"logo"} src={"/config/images/logo.png"} />
+        <StyledTitle>Gnome It All</StyledTitle>
+        {/* <StyledLogo alt={"logo"} src={"/config/images/logo.png"} /> */}
         <s.SpacerSmall />
         <ResponsiveWrapper flex={1} style={{ padding: 24 }} test>
           <s.Container flex={1} jc={"center"} ai={"center"}>
-            <StyledImg alt={"example"} src={"/config/images/example.gif"} />
+            <StyledImg alt={"example"} src={"/config/images/hidden.png"} />
           </s.Container>
           <s.SpacerLarge />
           <s.Container
@@ -216,7 +219,7 @@ function App() {
               backgroundColor: "var(--accent)",
               padding: 24,
               borderRadius: 24,
-              border: "4px dashed var(--secondary)",
+              border: "4px solid var(--secondary)",
               boxShadow: "0px 5px 11px 2px rgba(0,0,0,0.7)",
             }}
           >
@@ -264,7 +267,7 @@ function App() {
                   style={{ textAlign: "center", color: "var(--accent-text)" }}
                 >
                   1 {CONFIG.SYMBOL} costs {CONFIG.DISPLAY_COST}{" "}
-                  {CONFIG.NETWORK.SYMBOL}.
+                  {CONFIG.NETWORK.SYMBOL}. (~ ${CONFIG.DISPLAY_COST * usdExchangeRate} USD)
                 </s.TextTitle>
                 <s.SpacerXSmall />
                 <s.TextDescription
@@ -285,7 +288,7 @@ function App() {
                       Connect to the {CONFIG.NETWORK.NAME} network
                     </s.TextDescription>
                     <s.SpacerSmall />
-                    <StyledButton
+                    {CONFIG.ENABLE_CONNECT ? (<StyledButton
                       onClick={(e) => {
                         e.preventDefault();
                         dispatch(connect());
@@ -293,7 +296,7 @@ function App() {
                       }}
                     >
                       CONNECT
-                    </StyledButton>
+                    </StyledButton>) : (<StyledButton>Coming Soon...</StyledButton>)}
                     {blockchain.errorMsg !== "" ? (
                       <>
                         <s.SpacerSmall />
@@ -373,8 +376,7 @@ function App() {
           <s.Container flex={1} jc={"center"} ai={"center"}>
             <StyledImg
               alt={"example"}
-              src={"/config/images/example.gif"}
-              style={{ transform: "scaleX(-1)" }}
+              src={"/config/images/hidden.png"}
             />
           </s.Container>
         </ResponsiveWrapper>
